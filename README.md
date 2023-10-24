@@ -156,3 +156,129 @@ static class Node {
     }
 ```
 
+## 算法通关村第一关——链表经典问题之双指针专题
+
+### 1. 寻找中间结点 LeetCode876.
+
+LeetCode876: 给定一个头结点为 head 的非空单链表，返回链表的中间结点。如果有两个中间结点，则返回第二个中间结点。
+
+```
+示例1
+输入：[1,2,3,4,5]
+输出：此列表中的结点 3
+示例2：
+输入：[1,2,3,4,5,6]
+输出：此列表中的结点 4
+```
+
+**常规方法:** 先遍历获得链表长度，除以2即中间结点的位置，再一次遍历到中间位置即可。  
+**双指针法: **慢指针一次移动 1 个单位，快指针一次移动 2 个单位。当快指针移动到结尾时，慢指针正好处于链表的中间。分析可知若链表结点数为**奇数** ，最终慢指针恰为中间结点；若链表结点数位**偶数**，慢指针最终处于第二个中间结点。代码结尾直接返回慢指针即可。  
+**方法比较:** 常规思路需要遍历1.5次链表，而使用双指针法相当于只遍历了一次。  
+双指针法实现如下：
+
+```java
+public static ListNode middleNode(ListNode head) {
+    ListNode slow = head, fast = head;
+    while(fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next.next;
+    }
+    return slow;
+}
+```
+
+### 2. 寻找倒数第K个元素 
+
+要求: 输入一个链表，输出该链表中倒数第k个节点。本题从1开始计数，即链表的尾节点是倒数第1个节点。
+
+```
+示例
+给定一个链表: 1->2->3->4->5, 和 k = 2.
+返回链表 4->5.
+```
+
+**常规方法: **先遍历链表得到长度 len，再遍历到`len - k + 1`处即倒数第 k 个元素。  
+**双指针法：**快指针先移动 k 个单位，接着双指针同时移动，直到快指针位 null，此时慢指针正指向倒数第 k 个结点。  
+双指针法实现如下：
+
+```java
+public static ListNode getKthFromEnd(ListNode head, int k) {
+    ListNode slow = head, fast = head;
+    if (k < 1) {
+        System.out.println("参数有误");
+        return null;
+    }
+    while (k > 0 && fast != null) {
+        fast = fast.next;
+        k--;
+    }
+    if (k > 0) {
+        System.out.println("参数有误");
+        return null;
+    }
+    while (fast != null) {
+        slow = slow.next;
+        fast = fast.next;
+    }
+    return slow;
+}
+```
+
+### 3. 旋转链表 LeetCode61.
+
+LeetCode61: 给你一个链表的头节点 head ，旋转链表，将链表每个节点向右移动 k 个位置。
+
+```
+示例1:
+输入：head = [1,2,3, 4,5], k = 2
+输出：[4,5,1,2,3]
+```
+
+**分析：**将每个结点右移 k 个位置相当于**将最后 k 个结点这一整段插入到链表首部**。可知，设链表的长度为 len，若 k 为 len 的整数倍，链表相当于没有移动。  
+**常规方法：**首先遍历获得链表的长度 len，再遍历到`len - ( k % len ) `位置处则找到链表旋转后的尾结点，其下一个结点( next )即旋转后的头结点。通过结点操作即可完成旋转。  
+**双指针法：**先令快指针右移 k 步，接着快慢指针同时移动，直到快指针为最后一个结点。此时慢指针正好处于 k 个结点段的前一个位置，即**新的尾结点**(next即为**新头结点**)，快指针恰好指向 k 个结点段的**最后一个结点**。找到了这些关键结点，接着通过链表操作即可完成链表的旋转，最后将**新头结点**返回即可。  
+双指针法实现如下：
+
+```java
+public static ListNode rotateRight(ListNode head, int k) {
+    if (head == null || k == 0) {  // todo k == 0 遗漏
+        return null;
+    }
+    ListNode slow = head, fast = head; // 定义双指针
+    int len = 0;
+    ListNode cur = head;
+    // 遍历获得链表长度 len
+    while (cur != null) {
+        len++;
+        cur = cur.next;
+    }
+    // todo 代码优化: k % len == 0 直接返回 head 即可
+    if (k % len == 0) {
+        return head;
+    }
+    // k %= len;  // k mod 链表长度 len, 模运算确定等效最小右旋次数 k
+    // todo 代码优化: 依旧是上一条优化的思路, 优化后可推断出fast不会为null, 因此条件 fast!=null 多余了
+    while (k % len > 0) {
+        fast = fast.next;
+        k--;
+    }
+    // while (fast != null && k > 0) {  // 快指针首先移动 k 步
+    //     fast = fast.next;
+    //     k--;
+    // }
+    // 快慢指针同时移动, 直到快指针到达尾结点为止
+    while (fast.next != null) {
+        slow = slow.next;
+        fast = fast.next;
+    } // 循环结束时, 慢指针即为新尾结点, slow.next即为新的头结点
+    fast.next = head; // 成环
+    head = slow.next; // 指定新头结点
+    slow.next = null; // 断开
+    return head; // 返回旋转后的链表头结点
+}
+```
+
+### 小结
+
+双指针法可以很方便的寻找到**中间结点**或**倒数某一个结点**，虽然常规方法也能解决但不如前者来的直接，前者用于指针移动的循环的次数更少，代码实现也更加简洁。另外，寻找倒数第 K 个元素问题还是旋转链表的子问题。
+
