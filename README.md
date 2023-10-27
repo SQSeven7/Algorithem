@@ -282,3 +282,59 @@ public static ListNode rotateRight(ListNode head, int k) {
 
 双指针法可以很方便的寻找到**中间结点**或**倒数某一个结点**，虽然常规方法也能解决但不如前者来的直接，前者用于指针移动的循环的次数更少，代码实现也更加简洁。另外，寻找倒数第 K 个元素问题还是旋转链表的子问题。
 
+## 算法通关村第二关——链表反转
+
+### 1. 使用虚拟头结点
+
+首先创建一个虚拟头结点, 然后从左到右将链表上的结点**一个一个地插入到虚拟头结点之后**, 最后返回虚拟头结点 next 域即可. 代码实现如下:  
+```java
+public static ListNode reverseWithDummyHead(ListNode head) {
+    ListNode dummy = new ListNode(-1);
+    ListNode cur = head, next = null;
+    while (cur != null) {
+        next = cur.next;
+        cur.next = dummy.next;  // 一个一个
+        dummy.next = cur;        // 插入到虚拟头结点之后
+        cur = next;
+    }
+    return dummy.next;
+}
+```
+
+### 2. 直接反转
+
+从左到右将链表上的结点**作为反转链表的新头结点**即可, 最后一个结点即反转链表的最终头结点.
+
+```java
+public static ListNode reverseList(ListNode head) {
+    ListNode cur = head, next, rev = null;  // rev 即表示反转链表
+    while (cur != null) {
+        next = cur.next;
+        cur.next = rev;  // 作为反转链表
+        rev = cur;        // 的新头结点
+        cur = next;
+    }
+    return rev;
+}
+```
+
+### 3. 递归反转
+
+通过**递归**的方式来反转链表
+
+```java
+public static ListNode reverseListRecur(ListNode head) {
+    if (head == null || head.next == null) {
+        return head;
+    }
+    ListNode newHead = reverseListRecur(head.next);
+    head.next.next = head;
+    head.next = null;
+    return newHead;
+}
+```
+
+### 小结
+
+链表反转是高频的算法面试题, 无论是使用虚拟头结点辅助反转还是直接反转, 都是常用的链表反转方法, 必须达到熟练手写链表反转的程度. 递归实现链表反转比较开阔思路, 可以加深对递归这一重要算法思想的理解.
+
