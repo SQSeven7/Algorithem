@@ -338,3 +338,56 @@ public static ListNode reverseListRecur(ListNode head) {
 
 链表反转是高频的算法面试题, 无论是使用虚拟头结点辅助反转还是直接反转, 都是常用的链表反转方法, 必须达到熟练手写链表反转的程度. 递归实现链表反转比较开阔思路, 可以加深对递归这一重要算法思想的理解.
 
+## 算法通关村第二关——两两交换反转问题解析
+
+### 1. 问题
+
+LeetCode24. 给你一个链表, 两两交换其中相邻的结点, 并返回交换后链表的头节点. 你必须在不修改结点内部值的情况下完成本题(即, 只能进行结点交换). 示例如下: 
+
+```
+输入: head = [1,2,3,4]
+输出: [2,1,4,2]
+```
+
+![](diagram/LinkedList/swappairs.png)
+
+### 2. 分析
+
+因为两两交换实际上涉及到插入操作, 因此借助 `dummyHead` 可以简化代码的实现. 现在对问题建立一个模型, 对于需要交换的两个结点称之为 **swap pair**, 分别使用 `node1` 与 `node2` 表示, **swap pair 的前驱结点**使用 `cur` 表示, 而 **swap pair 的后继**实际上就是 `node2.next`. 建立起了编码模型后, 按如下步骤操作: 
+
+![](diagram/LinkedList/swappairs2.png)
+
+核心代码如下: 
+
+```java
+/**
+ *    pre 初始化为 dummy
+ *  node1 初始化为 pre.next (if not null)
+ *  node2 初始化为 pre.next.next (if not null)
+ *  循环以下操作, 直到 node1 或 node2 为 null
+ */
+cur.next = node2;		 	// 1. 前驱 -> swap pair
+node1.next = node2.next; 	// 2. swap pair -> 后继
+node2.next = node1;		 	// 3. node2 -> node1 
+cur = node1;             	// 4. 更新前驱 cur -> node1
+```
+
+### 3. 完整实现
+
+```java
+public static ListNode swapPairs(ListNode head) {
+    ListNode dummy = new ListNode(-1);
+    dummy.next = head;
+    ListNode cur = dummy, node1 = null, node2 = null;
+    while (cur.next != null && cur.next.next != null) { // node1 存在 且 node2 也存在
+        node1 = cur.next;
+        node2 = cur.next.next;
+        cur.next = node2;            // 1. pair 的前驱
+        node1.next = node2.next;     // 2. pair 的后继
+        node2.next = node1;          // 3. node2 -> node1
+        cur = node1;                 // 4. 更新关键循环变量 cur 为 node1
+    }
+    return dummy.next;
+}
+```
+
