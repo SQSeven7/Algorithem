@@ -391,3 +391,138 @@ public static ListNode swapPairs(ListNode head) {
 }
 ```
 
+## 算法通关村——不简单的数组增删改查
+
+### 1. 数组创建和初始化
+
+使用Java创建和初始化数组大致有3种方式:  
+```java
+/**  创建一个数组, 初始化为 { 1, 2, 3, 4, 5 }  **/
+
+// 方式一: 
+int[] a = new int[5];
+for (int i = 0; i < a.length; i++) {
+    a[i] = i + 1;
+}
+
+// 方式二:
+int[] a = new int[] {1, 2, 3, 4, 5};
+
+// 方式三:
+int[] a = {1, 2, 3, 4, 5};
+```
+
+### 2. 查找
+
+在一个数组中查找特定元素有多种方法, 最简单的就是遍历, 存在返回其索引, 否则返回-1. 若数组有序还可以使用二分查找等更高效但实现更复杂的算法. 这里只放最简单的遍历查找方法:  
+**数组无序的情况**: (遍历, 等于返回索引, 直到结束)
+
+```java
+public static int searchOutOfOrder(int a[], int size, int key) {
+    for (int i = 0; i < size; i++) {
+        if (key == a[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+```
+
+**数组有序的情况**: (遍历, 等于返回索引, once大于但不等于就提前结束)
+
+```java
+public static int searchInOrder(int a[], int size, int key) {
+    int index = -1;
+    for (int i = 0; i < size; i++) {
+        if (key >= a[i]) {
+            index = i;
+            break;
+        }
+    }
+    return index != -1 ? index : -1;
+}
+```
+
+### 3. 增加
+
+​		数组元素的增加更为常见的形式是往有序的数组中新增元素, 返回插入后元素的下标. 若数组的实际大小 size 已等于数组容量 length, 则无法继续增加新元素, 需要扩容, 这里不作讨论, 直接返回 -1 即可.  
+​		现在讨论**数组有序**的情况增加元素. 因为数组有序, 插入前先可以先找到第一个比待插入元素 element 大的元素, 该元素及其之后的元素全部都后移一步, 将 element 插入空位即可.  
+​		此处介绍两种遍历查找再插入的方式:  
+**① 从前往后查找位置**  
+​		从头(**最小**)开始依次与当前元素比较, 找到**第一个大于 element 的元素**(**索引**),  然后空出该处(当前及之后元素后移), 插入. 若未找到, 说明 element 是最大的, 直接将其插入**索引 size 处**. 实现如下: 
+
+```java
+public static int addByElementSequence(int[] arr, int size, int element) {
+    if (size >= arr.length) {  
+        return -1;
+    }
+    int index = size;
+    for(int i = 0; i < size; i++) {
+        if (element < arr[i]) {
+            index = i;
+            break;
+        }
+    }
+    for(int j = size; j > index; j--) {
+        arr[j] = arr[j - 1];
+    }
+    arr[index] = element;
+    return index;
+}
+```
+
+​		该方式要先遍历比较, 确定后挪元素的第一个元素的索引, 然后再遍历这些元素使之后移, 最后插入. 需要写两次遍历的for语句.
+
+**② 从后往前查找位置**  
+		从后(**最大**)往前与当前元素比较, 若 **element 更大或与之相等**, 直接插入当前元素之后即可, 否则将当前元素后移一位. 如此循环, 直到插入. 若结束仍未插入, 说明 element 是最小的, 直接插入**索引 0 处**(**已空出**). 实现如下: 
+
+```java
+public static int addByElementSequenceFromEnd(int[] arr, int size, int element) {
+    if (size >= arr.length) {
+        return -1;
+    }
+    int index = 0;
+    for (int i = size; i > 0; i--) {
+        if (element >= arr[i - 1]) {  
+            index = i;
+            break;
+        } else {
+            arr[i] = arr[i - 1];  
+        }	
+    }
+    arr[index] = element;
+    return index;
+}
+```
+
+​		该方式比从前往后的**效率更高**, 一边比较一边后移, 之前比 element 小的元素都无须比较. 只需要写一个 for 循环即可.
+
+### 4. 删除
+
+​		数组删除的一般形式是删除指定值的元素, 本质上就是使得后面的元素将其覆盖, 之后的元素整体后移. 若删除的是最后一个元素, 实际上只需要 size 减 1 即可. 若数组是有序的, 则可以通过二分查找等方法先找到目标元素, 然后删除.  
+​		讨论数组无序的情况. 这里通过遍历数组, 找到与目标元素 key 值相同的元素索引, 然后当前及之后的元素都向前移动一步, 覆盖原来那个元素, 返回删除后数组 size. 若未找到, 说明 key 不存在, 直接返回 size 即可.   
+​		注意, 如果 key 恰为最后一个元素, 实际上进行覆盖操作的 for 循环是不会执行的, 因为如果 size 等于 length, size - 1处的元素不可能移动到 size (length) 的位置, 越界了. 根本不会进入执行覆盖操作的循环. 直接 size 减一即可.
+
+```java
+public static int removeByElement(int[] arr, int size, int key) {
+    int index = -1;
+    for (int i = 0; i < size; i++) {
+        if (key == arr[i]) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) {
+        return size;
+    }
+    for (int j = index + 1; j < size; j++) {
+        arr[j - 1] = arr[j];
+    }
+    return --size;
+}
+```
+
+
+
+
+
