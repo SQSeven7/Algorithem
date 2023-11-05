@@ -522,7 +522,119 @@ public static int removeByElement(int[] arr, int size, int key) {
 }
 ```
 
+## 算法通关村——双指针的妙用（数组的区间专题）
+
+### 1. 寻找最小有序区间 LeetCode228.
+
+> 给定一个无重复元素的有序整数数组nums. 返回恰好覆盖数组中所有数字的最小区间列表. 也就是说, nums 的每个元素都恰好只处于某一个区间, nums 中不存在不属于某个区间的元素. 
+
+```java
+示例1:
+输入: nums = [0,1,2,4,5,7]
+输出: ["0->2", "4->5", "7"]
+对应关系:
+[0,2] >> "0->2"
+[4,5] >> "4->5"
+[7,7] >> "7"
+
+示例2:
+输入:nums = [0,2,3,4,6,8,9]
+输出:["0", "2->4", "6", "8->9"]
+对应关系:
+[0,0] >> "0"
+[2,4] >> "2->4"
+[6,6] >> "6->6"
+[8,9] >> "8->9"
+```
+
+**1. 思路分析** 数组的**双指针**思想  
+设置快慢指针 `slow` 与 `fast` .  
+使得 slow 与 fast 分别指向一段连续元素的头元素和尾元素, 当只有一个元素连续的时候 slow 与 fast 同时指向该元素. 如果区间为前者则表示成 [slow] -> [fast], 为后者则表示成 [slow] 即可.  因此:  
+`slow` 表示区间的起点.  
+`fast` 表示区间的终点.  
+两者可以相等.
+
+1. slow 初始为 0, fast 遍历数组, 找到当前区间的终点.  
+   当遇到不连续时, **打破连续**的元素的前一个元素即当前区间终点. 即当 `[fast + 1] > [fast] + 1`时, fast 为当前区间终点.  注意, fast 遍历到**数组的结尾处一定会打破连续**, 因为没有后续的元素了. 此时 fast == length - 1 即为当前区间同时也是最后一个区间的终点. 
+2. 判断起点与终点是否相等, 确定区间的字符串表示.  
+   相等, 则表示该区间只有一个元素, 用 **"[slow]"** 表示即可.  
+   否则, 表示该区间有多个元素, 用 **"[slow] -> [fast]"** 表示.  
+   然后将表示区间的字符串放入容器对象保存(例如, List)
+3. 更新 slow , 指向下一个新起点.
+   即将 slow 指向打破连续的那个元素, `slow = fast + 1` .  
+
+**2. 代码实现**
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+
+public static List<String> summaryRanges(int[] nums) {
+    List<String> ranges = new ArrayList<>();
+    int slow = 0;
+    for (int fast = 0; fast < nums.length; fast++) {
+        if (fast + 1 == nums.length || nums[fast + 1] > nums[fast] + 1) {  // 确定区间终点 fast
+            String range = slow != fast ? nums[slow] + "->" + nums[fast] : nums[slow] + "";
+            ranges.add(range);
+            slow = fast + 1;  // 下一个区间起点 fast+1
+        }
+    }
+    return ranges;
+}
+```
 
 
 
+### 2. 寻找缺失区间 LeetCode163.
+
+> 把LeetCode228. 的问题反过来, 寻找缺失的区间.
+
+```java
+示例:
+输入: nums = [0,1,3,50,75] lower = 0 upper = 99
+输出: ["2", "4->49", "51->74", "76->99"]
+```
+
+**1.思路分析**  遍历即可   
+**写在最前面:**   
+  本题要寻找**缺失区间**(简称为**缺失**). 由于 lower 与 upper 的限制, 我们将 **[lower, upper]** 定义为**有效的缺失区间范围**. 完全处于该范围外的缺失是无效的, 因此结合题目条件我们可以通过判断, **跳过**或**直接结束**缺失的寻找. 而对于那些与有效区间只有部分交集的缺失, 需要将其超出的部分**切除**.  
+  循环变量 i . 遍历整个数组,  如果 i 与 i + 1 指向的**相邻两个元素不连续**, 例如 i -> 1, i + 1-> 4. 则缺失区间的起点为 **[i] + 1**, 终点为 **[i + 1] - 1**.  如果 i 到了数组结尾, 也会导致不连续, 此时终点直接便是 upper.
+
+1. 根据区间限制条件 lower 与 upper 进行 break 与 continue  
+   ① 若 [i] >= upper, 则缺失起点(+1)必定**大于 upper**, 则当前与之后都没有有效的缺失, beak直接结束即可.  
+   ② 若 [i + 1] <= lower, 则缺失的终点(-1)必定**小于 lower**, 直接 continue 跳过进入下一轮循环即可.
+2. 如果能够进入第2步, 且 [i] 与 [i + 1] 不连续或者 i 为数组结尾, 则存在缺失, 对其中超出有效区间的部分直接切除.  
+   ① 缺失**起点与 lower 两者取其大**: `Math.max([i] + 1, lower)`  
+   ② 缺失**终点与 upper 两者取其小**: `Math.min([i + 1] - 1, upper)`  
+   若 i 为结尾, 那么终点直接为 upper.  
+   接着, 若起点等于终点, 则缺失表示为字符串 "起点". 否则表示为 "起点->终点" . 将其放入容器中, 如 List .  
+3. 更新 i , 重复 1, 2, 直到 break 或循环结束.
+
+**2.代码实现**
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+import static java.lang.Math.min;
+import static java.lang.Math.max;
+
+public static List<String> findLostRanges(int[] nums, int lower, int upper) {
+    List<String> ranges = new ArrayList<>();
+    for (int i = 0; i < nums.length; i++) {
+        if (nums[i] >= upper) break;
+        if (i + 1 < nums.length && nums[i + 1] <= lower) continue;
+        if (i + 1 == nums.length || nums[i + 1] > nums[i] + 1) {
+            int L = max(nums[i] + 1, lower);
+            int R = i + 1 != nums.length ? min(nums[i + 1] - 1, upper) : upper;
+            String range = L != R ? L + "->" + R : L + "";
+            ranges.add(range);
+        }
+    }
+    return ranges;
+}
+```
+
+### 小结
+
+  数组区间问题的关键在于**判断元素的连续性**. 一段连续的元素必定两两之差为1, 从确定某一元素为起点开始, 若碰到不连续的元素, 则该元素的前一元素即连续区间的终点; 若两相邻元素不连续, 即两者之差大于1, 则存在缺失区间, 终点与起点即前者+1, 后者-1.
 
