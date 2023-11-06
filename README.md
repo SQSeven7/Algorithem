@@ -638,3 +638,68 @@ public static List<String> findLostRanges(int[] nums, int lower, int upper) {
 
   数组区间问题的关键在于**判断元素的连续性**. 一段连续的元素必定两两之差为1, 从确定某一元素为起点开始, 若碰到不连续的元素, 则该元素的前一元素即连续区间的终点; 若两相邻元素不连续, 即两者之差大于1, 则存在缺失区间, 终点与起点即前者+1, 后者-1.
 
+## 算法通关村——如何基于数组实现栈
+
+### 1.栈的基本操作（基于数组）
+
+① push()       压栈  
+② pop()  	   出栈  
+③ peek()       取栈顶  
+④ isEmpty()  判空  
+因为是基于数组实现栈, 当容量 capacity 不够时 push 操作还需要扩容:  
+expandCapacity()  底层数组扩容  
+
+压栈与出栈示意图:  
+
+![](diagram/Stack/push.png)
+
+![](diagram/Stack/pop.png)
+
+### 2.实现
+
+```java
+import java.util.Arrays;
+
+public class ArrayStack<T> {
+    private Object[] stack;  // underlying array
+    private int top;         // top pointer
+
+    public ArrayStack() {
+        stack = new Object[10];  // initial capacity of 10
+    }
+
+    // 压栈
+    public void push(T e) {
+        if (e == null) {
+            throw new NullPointerException("压栈对象不能为空！");
+        }
+        expandCapacity(top + 1);
+        stack[top++] = e;
+    }
+
+    // 出栈
+    public T pop() {
+        return top > 0 ? (T) stack[--top] : null;
+    }
+
+    // 取栈顶
+    public T peak() {
+        return top > 0 ? (T) stack[top] : null;
+    }
+
+    // 判空
+    public boolean isEmpty() {
+        return top == 0;
+    }
+
+    // 底层数组扩容
+    private void expandCapacity(int size) {
+        int capacity = stack.length;
+        if (size > capacity) {
+            capacity = capacity * 3 / 2 + 1;
+            stack = Arrays.copyOf(stack, capacity);
+        }
+    }
+}
+```
+
