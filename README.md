@@ -703,3 +703,83 @@ public class ArrayStack<T> {
 }
 ```
 
+## 算法通关村——括号匹配问题解析
+
+### 1.问题
+
+> LeetCode20. 给定一个只包括'(', ')', '{', '}', '[', ']' 的字符串 s, 判断字符串是否有效. 有效字符串需满足  
+>
+> 1. 左括号必须用相同类型的右括号闭合.
+> 2. 左括号必须以正确的顺序闭合.
+
+```java
+示例:
+输入: s = "()[]{}"
+输出: true
+```
+
+### 2.分析
+
+本题的关键在于完成同类型的括号**匹配**, 左括号**遇到同类型的右括号**即可匹配成功.   
+**0) 参数预处理**  
+由于输入给定的是括号字符组成的字符串, 为了方便处理可以将字符串先转换成字符数组.  
+**1) 配对原则**  
+左右的配对可以借助栈, 遍历字符数组, 遇到左括号则压入, 遇到右括号则与栈顶括号进行配对. 匹配成功栈顶元素出栈, 直至栈为空.  
+**2) 区分左括号右括号字符**  
+对此可以借助 java.util.HashMap 来将同类型的一对括号存储为一组 entry. 左括号为 key, 右括号为 value. 那么便可以借助 Map 的成员方法判断当前字符是 key 还是 value, 即是左括号还是右括号.   
+**3) 匹配同类型右括号的方式**  
+根据配对原则. 将当前 value 字符与栈顶的 key 字符对应的 value 进行比较, 相同则配对成功. **配对失败**直接返回 false.  
+若出现**无法配对**:  
+① 遇到 value 字符, 可栈中无 key 字符以配对   
+② 循环结束, 栈中还剩余 key 字符  
+综上, 遇到**匹配失败**, **无法匹配**等情况时直接返回 false 即可, 若**全部都能匹配成功**则最后返回 true .  
+
+### 3.实现
+
+```java
+public static boolean isValid(String s) {
+    if (s == null) {
+        return false;
+    }
+    Map<Character, Character> map = new HashMap<>();
+    map.put('(', ')');
+    map.put('{', '}');
+    map.put('[', ']');
+
+    char[] chars = s.toCharArray();
+    Stack<Character> stack = new Stack<>();
+    for (char ch : chars) {
+        if (map.containsKey(ch)) {
+            stack.push(ch);
+            continue;
+        }
+        if (stack.isEmpty()) {
+            return false;
+        }
+        // 配对
+        if (ch != map.get(stack.peek())) {
+            return false;
+        } else {
+            stack.pop();
+        }
+    }
+    // 漏考虑了! 若循环结束栈仍不为空, 说明有 key 未能配对
+    return stack.isEmpty();
+}
+
+// main函数内自定义测试用例:
+public static void main(String[] args) {
+    String[] strs = {
+            "()[]{}", // true
+            "([{}])", // true
+            "(()[])", // true
+            "{(})", // false 配对失败的用例 => 进行配对了, 但是不匹配
+            "(){",  // false 循环结束栈有key未进行配对的用例 => key 还有, 没有 value 了
+            ")()",  // false 栈中无key以配对的用例 => value 有, 没有 key 了
+    };
+    for (String s : strs) {
+        System.out.println("str: " + s);
+        System.out.println("result: " + isValid(s));
+    }
+}
+```
